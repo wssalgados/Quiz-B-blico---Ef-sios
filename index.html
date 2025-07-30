@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Bíblico Avançado - Efésios</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #3a7bd5;
+            --secondary-color: #00d2ff;
+            --background-color: #f4f7f6;
+            --container-bg: #ffffff;
+            --text-color: #333;
+            --correct-color: #28a745;
+            --incorrect-color: #dc3545;
+            --timer-color: #ff7e5f;
+            --font-family: 'Poppins', sans-serif;
+            --border-radius: 12px;
+            --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-color);
+        }
+
+        .quiz-container {
+            background: var(--container-bg);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            width: 100%;
+            max-width: 700px;
+            text-align: center;
+        }
+
+        .version-selector {
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .version-selector select {
+            padding: 5px 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-family: var(--font-family);
+            background-color: #f9f9f9;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transition: width 0.4s ease-in-out;
+        }
+        
+        #question-counter {
+            font-size: 0.9em;
+            color: #777;
+            margin-bottom: 10px;
+        }
+
+        #timer-container {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: var(--timer-color);
+            margin-bottom: 20px;
+        }
+
+        .question-wrapper {
+            transition: opacity 0.4s ease-in-out;
+        }
+
+        .question {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        
+        .options button {
+            width: 100%;
+            padding: 15px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            background-color: var(--container-bg);
+            color: var(--primary-color);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .options button:hover:not(:disabled) {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(58, 123, 213, 0.3);
+        }
+
+        .options button:disabled {
+            cursor: not-allowed;
+            opacity: 0.9;
+        }
+        
+        .options button.correct {
+            background-color: var(--correct-color);
+            border-color: var(--correct-color);
+            color: white;
+        }
+        
+        .options button.incorrect {
+            background-color: var(--incorrect-color);
+            border-color: var(--incorrect-color);
+            color: white;
+        }
+
+        .feedback {
+            font-size: 1.1rem;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+        
+        .commentary-box {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 1rem;
+            font-family: var(--font-family);
+            border: 1px solid #eee;
+            border-radius: 8px;
+            height: 120px;
+            resize: vertical;
+            background-color: #f9f9f9;
+        }
+
+        .restart-btn {
+            margin-top: 20px;
+            padding: 15px 30px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(58, 123, 213, 0.4);
+        }
+        
+        .restart-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(58, 123, 213, 0.5);
+        }
+
+        #detailed-results { text-align: left; }
+        .detailed-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: var(--border-radius);
+        }
+        .detailed-question { font-weight: 600; color: var(--text-color); }
+        .detailed-answer { margin-top: 5px; font-size: 0.95em; }
+        .detailed-correct { color: var(--correct-color); }
+        .detailed-incorrect { color: var(--incorrect-color); }
+        .detailed-verse { font-style: italic; color: #777; font-size: 0.9em; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="quiz-container">
+        <h1>📖 Quiz Bíblico - Efésios</h1>
+        
+        <div class="version-selector">
+            <label for="bibleVersion">Versão da Bíblia:</label>
+            <select id="bibleVersion">
+                <option value="ARC" selected>Almeida Revista e Corrigida (ARC)</option>
+                <option value="ARA">Almeida Revista e Atualizada (ARA)</option>
+                <option value="NVI">Nova Versão Internacional (NVI)</option>
+            </select>
+        </div>
+        
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div id="question-counter"></div>
+        <div id="timer-container" style="display: none;">Tempo: <span id="timer">30</span>s</div>
+        
+        <div class="question-wrapper" id="questionWrapper">
+            <div class="question" id="question" aria-live="polite"></div>
+            <div class="options" id="options"></div>
+            <div id="feedback" class="feedback" aria-live="polite"></div>
+            <div id="commentary" class="feedback"></div>
+        </div>
+        
+        <div id="results-wrapper" style="display: none;">
+            <div id="score" class="feedback"></div>
+            <div id="detailed-results" class="feedback"></div>
+            <button class="restart-btn" id="restartBtn">Reiniciar Quiz</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Elementos da UI ---
+        const progressBar = document.getElementById('progressBar');
+        const questionCounterEl = document.getElementById('question-counter');
+        const timerContainer = document.getElementById('timer-container');
+        const timerDisplay = document.getElementById('timer');
+        const questionWrapper = document.getElementById('questionWrapper');
+        const questionEl = document.getElementById('question');
+        const optionsEl = document.getElementById('options');
+        const feedbackEl = document.getElementById('feedback');
+        const commentaryEl = document.getElementById('commentary');
+        const resultsWrapper = document.getElementById('results-wrapper');
+        const scoreEl = document.getElementById('score');
+        const detailedResultsEl = document.getElementById('detailed-results');
+        const restartButton = document.getElementById('restartBtn');
+
+        // --- Estado do Quiz ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let shuffledQuestions = [];
+        let userAnswers = [];
+        let timerInterval = null;
+        let autoAdvanceTimeout = null;
+        let questions = []; // Será preenchida pelo fetch
+
+        // --- Funções do Quiz ---
+
+        function startQuiz() {
+            if (autoAdvanceTimeout) clearTimeout(autoAdvanceTimeout);
+            
+            score = 0;
+            currentQuestionIndex = 0;
+            userAnswers = [];
+            
+            resultsWrapper.style.display = 'none';
+            questionWrapper.style.display = 'block';
+            timerContainer.style.display = 'block';
+            
+            shuffledQuestions = [...questions]; 
+            shuffleArray(shuffledQuestions);
+            
+            loadNextQuestion();
+        }
+
+        function loadNextQuestion() {
+            if (timerInterval) clearInterval(timerInterval);
+            if (autoAdvanceTimeout) clearTimeout(autoAdvanceTimeout);
+            
+            if (currentQuestionIndex < shuffledQuestions.length) {
+                questionWrapper.style.opacity = 0;
+                
+                setTimeout(() => {
+                    displayQuestion();
+                    questionWrapper.style.opacity = 1;
+                }, 400);
+            } else {
+                showFinalResults();
+            }
+        }
+
+        function displayQuestion() {
+            updateProgressBar();
+            
+            const question = shuffledQuestions[currentQuestionIndex];
+            questionCounterEl.textContent = `Pergunta ${currentQuestionIndex + 1} de ${shuffledQuestions.length}`;
+            questionEl.textContent = question.pergunta;
+            
+            feedbackEl.innerHTML = '';
+            commentaryEl.innerHTML = '';
+            optionsEl.innerHTML = '';
+
+            let shuffledOptions = [...question.opcoes];
+            shuffleArray(shuffledOptions);
+
+            shuffledOptions.forEach((optionText) => {
+                const button = document.createElement('button');
+                button.textContent = optionText;
+                const originalIndex = question.opcoes.indexOf(optionText);
+                button.onclick = () => handleAnswer(originalIndex, button);
+                optionsEl.appendChild(button);
+            });
+            
+            startTimer();
+        }
+
+        function handleAnswer(selectedIndex, clickedButton) {
+            clearInterval(timerInterval);
+            const question = shuffledQuestions[currentQuestionIndex];
+            const isCorrect = selectedIndex === question.correta;
+            
+            if (isCorrect) {
+                score++;
+            }
+
+            const allButtons = optionsEl.querySelectorAll('button');
+            allButtons.forEach(btn => {
+                btn.disabled = true;
+                const originalIndexOfBtn = question.opcoes.indexOf(btn.textContent);
+                if (originalIndexOfBtn === question.correta) {
+                    btn.classList.add('correct');
+                }
+            });
+
+            if (!isCorrect && clickedButton) {
+                clickedButton.classList.add('incorrect');
+            }
+
+            const selectedVersion = document.getElementById('bibleVersion').value;
+            const verseText = question.versiculos[selectedVersion] || question.versiculos['ARC'];
+
+            userAnswers.push({
+                question: question.pergunta,
+                selectedOption: selectedIndex !== null ? question.opcoes[selectedIndex] : "Tempo esgotado",
+                correctOption: question.opcoes[question.correta],
+                isCorrect: isCorrect,
+                versiculo: verseText
+            });
+
+            feedbackEl.innerHTML = isCorrect ? '✅ Resposta Correta!' : '❌ Resposta Incorreta!';
+            if (selectedIndex === null) feedbackEl.innerHTML = '⌛️ Tempo Esgotado!';
+            
+            commentaryEl.innerHTML = `<textarea class="commentary-box" readonly>${verseText}\n\n${question.comentario}</textarea>`;
+            
+            currentQuestionIndex++;
+            autoAdvanceTimeout = setTimeout(loadNextQuestion, 8500);
+        }
+
+        function startTimer() {
+            let timeLeft = 30;
+            timerDisplay.textContent = timeLeft;
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleAnswer(null, null);
+                }
+            }, 1000);
+        }
+
+        function showFinalResults() {
+            questionWrapper.style.display = 'none';
+            timerContainer.style.display = 'none';
+            resultsWrapper.style.display = 'block';
+            resultsWrapper.style.opacity = 0;
+
+            setTimeout(() => {
+                resultsWrapper.style.opacity = 1;
+            }, 100);
+
+            const percentage = (score / shuffledQuestions.length) * 100;
+            scoreEl.innerHTML = `<h2>Quiz Finalizado!</h2>Você acertou ${score} de ${shuffledQuestions.length} (${percentage.toFixed(0)}%).`;
+            
+            displayDetailedResults();
+        }
+
+        function displayDetailedResults() {
+            detailedResultsEl.innerHTML = '<h3>Revisão das Respostas:</h3>';
+            userAnswers.forEach((answer, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.classList.add('detailed-item');
+
+                const statusIcon = answer.isCorrect ? '✅' : '❌';
+                const selectedText = answer.selectedOption === 'Tempo esgotado' ? `<span style="color: var(--timer-color);">${answer.selectedOption}</span>` : answer.selectedOption;
+                
+                itemDiv.innerHTML = `
+                    <div class="detailed-question">${index + 1}. ${answer.question}</div>
+                    <div class="detailed-answer ${answer.isCorrect ? 'detailed-correct' : 'detailed-incorrect'}">
+                        ${statusIcon} Sua resposta: ${selectedText}
+                    </div>
+                    ${!answer.isCorrect ? `<div class="detailed-answer detailed-correct">Resposta Correta: ${answer.correctOption}</div>` : ''}
+                    <div class="detailed-verse">${answer.versiculo}</div>
+                `;
+                detailedResultsEl.appendChild(itemDiv);
+            });
+        }
+        
+        function updateProgressBar() {
+            const progress = (currentQuestionIndex / shuffledQuestions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // --- Event Listeners ---
+        restartButton.addEventListener('click', startQuiz);
+
+        // --- Início do Quiz ---
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('perguntas.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro de rede ao carregar o arquivo de perguntas.');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    questions = data;
+                    startQuiz();
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar o quiz:', error);
+                    questionWrapper.innerHTML = `<div class="feedback" style="color: var(--incorrect-color);">Falha ao carregar as perguntas do quiz. Verifique se o arquivo 'perguntas.json' está na mesma pasta e se você está usando um servidor local.</div>`;
+                    timerContainer.style.display = 'none';
+                });
+        });
+    </script>
+
+</body>
+</html>
