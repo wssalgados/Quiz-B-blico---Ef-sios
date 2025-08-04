@@ -74,7 +74,7 @@
             background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
             transition: width 0.4s ease-in-out;
         }
-
+        
         #question-counter {
             font-size: 0.9em;
             color: #777;
@@ -97,7 +97,7 @@
             font-weight: 600;
             margin-bottom: 20px;
         }
-
+        
         .options button {
             width: 100%;
             padding: 15px;
@@ -123,13 +123,13 @@
             cursor: not-allowed;
             opacity: 0.9;
         }
-
+        
         .options button.correct {
             background-color: var(--correct-color);
             border-color: var(--correct-color);
             color: white;
         }
-
+        
         .options button.incorrect {
             background-color: var(--incorrect-color);
             border-color: var(--incorrect-color);
@@ -141,7 +141,7 @@
             margin-top: 20px;
             font-weight: 600;
         }
-
+        
         .commentary-box {
             width: 100%;
             box-sizing: border-box;
@@ -171,7 +171,7 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(58, 123, 213, 0.4);
         }
-
+        
         .restart-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 6px 20px rgba(58, 123, 213, 0.5);
@@ -184,7 +184,6 @@
             border: 1px solid #eee;
             border-radius: var(--border-radius);
         }
-
         .detailed-question { font-weight: 600; color: var(--text-color); }
         .detailed-answer { margin-top: 5px; font-size: 0.95em; }
         .detailed-correct { color: var(--correct-color); }
@@ -196,7 +195,7 @@
 
     <div class="quiz-container">
         <h1>📖 Quiz Bíblico - Efésios</h1>
-
+        
         <div class="version-selector">
             <label for="bibleVersion">Versão da Bíblia:</label>
             <select id="bibleVersion">
@@ -205,21 +204,21 @@
                 <option value="NVI">Nova Versão Internacional (NVI)</option>
             </select>
         </div>
-
+        
         <div class="progress-bar-container">
             <div class="progress-bar" id="progressBar"></div>
         </div>
 
         <div id="question-counter"></div>
         <div id="timer-container" style="display: none;">Tempo: <span id="timer">30</span>s</div>
-
+        
         <div class="question-wrapper" id="questionWrapper">
             <div class="question" id="question" aria-live="polite"></div>
             <div class="options" id="options"></div>
             <div id="feedback" class="feedback" aria-live="polite"></div>
             <div id="commentary" class="feedback"></div>
         </div>
-
+        
         <div id="results-wrapper" style="display: none;">
             <div id="score" class="feedback"></div>
             <div id="detailed-results" class="feedback"></div>
@@ -228,6 +227,7 @@
     </div>
 
     <script>
+        // --- Elementos da UI ---
         const progressBar = document.getElementById('progressBar');
         const questionCounterEl = document.getElementById('question-counter');
         const timerContainer = document.getElementById('timer-container');
@@ -242,33 +242,41 @@
         const detailedResultsEl = document.getElementById('detailed-results');
         const restartButton = document.getElementById('restartBtn');
 
+        // --- Estado do Quiz ---
         let currentQuestionIndex = 0;
         let score = 0;
         let shuffledQuestions = [];
         let userAnswers = [];
         let timerInterval = null;
         let autoAdvanceTimeout = null;
-        let questions = [];
+        let questions = []; // Será preenchida pelo fetch
+
+        // --- Funções do Quiz ---
 
         function startQuiz() {
             if (autoAdvanceTimeout) clearTimeout(autoAdvanceTimeout);
+            
             score = 0;
             currentQuestionIndex = 0;
             userAnswers = [];
+            
             resultsWrapper.style.display = 'none';
             questionWrapper.style.display = 'block';
             timerContainer.style.display = 'block';
+            
             shuffledQuestions = [...questions]; 
             shuffleArray(shuffledQuestions);
+            
             loadNextQuestion();
         }
 
         function loadNextQuestion() {
             if (timerInterval) clearInterval(timerInterval);
             if (autoAdvanceTimeout) clearTimeout(autoAdvanceTimeout);
-
+            
             if (currentQuestionIndex < shuffledQuestions.length) {
                 questionWrapper.style.opacity = 0;
+                
                 setTimeout(() => {
                     displayQuestion();
                     questionWrapper.style.opacity = 1;
@@ -280,9 +288,11 @@
 
         function displayQuestion() {
             updateProgressBar();
+            
             const question = shuffledQuestions[currentQuestionIndex];
             questionCounterEl.textContent = `Pergunta ${currentQuestionIndex + 1} de ${shuffledQuestions.length}`;
             questionEl.textContent = question.pergunta;
+            
             feedbackEl.innerHTML = '';
             commentaryEl.innerHTML = '';
             optionsEl.innerHTML = '';
@@ -294,17 +304,18 @@
                 const button = document.createElement('button');
                 button.textContent = optionText;
                 const originalIndex = question.opcoes.indexOf(optionText);
-                button.onclick = () => handleAnswer(originalIndex, button, question);
+                button.onclick = () => handleAnswer(originalIndex, button);
                 optionsEl.appendChild(button);
             });
-
+            
             startTimer();
         }
 
-        function handleAnswer(selectedIndex, clickedButton, question) {
+        function handleAnswer(selectedIndex, clickedButton) {
             clearInterval(timerInterval);
+            const question = shuffledQuestions[currentQuestionIndex];
             const isCorrect = selectedIndex === question.correta;
-
+            
             if (isCorrect) {
                 score++;
             }
@@ -335,16 +346,11 @@
 
             feedbackEl.innerHTML = isCorrect ? '✅ Resposta Correta!' : '❌ Resposta Incorreta!';
             if (selectedIndex === null) feedbackEl.innerHTML = '⌛️ Tempo Esgotado!';
-
+            
             commentaryEl.innerHTML = `<textarea class="commentary-box" readonly>${verseText}\n\n${question.comentario}</textarea>`;
-
+            
             currentQuestionIndex++;
-
-            autoAdvanceTimeout = setTimeout(loadNextQuestion, 12000);
-        }
-    </script>
-</body>
-</html>
+            autoAdvanceTimeout = setTimeout(loadNextQuestion, 8500);
         }
 
         function startTimer() {
@@ -434,8 +440,4 @@
     </script>
 
 </body>
-
 </html>
-
-
-
